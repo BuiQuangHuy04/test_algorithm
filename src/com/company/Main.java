@@ -6,21 +6,20 @@ import java.util.*;
 public class Main{
 
     public static void main(String[] args) {
-
         int n = 6;
         while (n!=7) {
             try {
                 System.out.println(
                         "\n----------------------------------------------------------------" +
-                                "\n1. In ma trận sao vuông" +
-                                "\n2. In ma trận sao tam giác" +
-                                "\n3. In ma trận số tam giác" +
-                                "\n4. In ma trận số xoắn ốc vuông" +
-                                "\n5. In ma trận số xoắn ốc tam giác" +
-                                "\n6. Game nối chữ" +
+                                "\n1. Square star matrix" +
+                                "\n2. Triangular star matrix" +
+                                "\n3. Matrix of triangular numbers" +
+                                "\n4. Square spiral number matrix" +
+                                "\n5. Triangular helix number matrix" +
+                                "\n6. Words finder game" +
                                 "\n7. Exit");
 
-                n = Input.input();
+                n = Input.input("Pick a number");
 
                 switch (n) {
                     case 1:
@@ -53,7 +52,7 @@ public class Main{
 }
 
 abstract class Input {
-    public static int input() {
+    public static int input(String msg) {
         Scanner scanner = new Scanner(System.in);
 
         boolean checkInput = false;
@@ -62,7 +61,7 @@ abstract class Input {
 
         while (!checkInput) {
             try {
-                System.out.print("Enter a number: ");
+                System.out.print(msg + ": ");
                 size = Integer.parseInt(scanner.nextLine());
 
                 checkInput = true;
@@ -70,7 +69,7 @@ abstract class Input {
                 System.out.println("Input error!");
                 checkInput = false;
             } catch (Exception e) {
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
         return size;
@@ -80,7 +79,7 @@ abstract class Input {
 class Test1 {
     public static void test() {
         System.out.println("\n1. In ma trận sao vuông");
-        int l = Input.input();
+        int l = Input.input("Enter length");
 
         int row = 0;
         for (int i = 0; i < l; i++) {
@@ -99,7 +98,7 @@ class Test1 {
 class Test2 {
     public static void test() {
         System.out.println("\nIn ma trận sao tam giác");
-        int h = Input.input();
+        int h = Input.input("Enter height");
         int r = 1;
         int w = h*2-1;
 
@@ -128,7 +127,7 @@ class Test2 {
 class Test3 {
     public static void test() {
         System.out.println("\nIn ma trận số tam giác");
-        int height = Input.input();
+        int height = Input.input("Enter height");
 
         int r = 1;
         int c1 = height-2;
@@ -186,7 +185,7 @@ class Test4 {
 
         boolean iVal = true;
 
-        int size = Input.input();
+        int size = Input.input("Enter length");
         int
                 r = 0,
                 c = 0,
@@ -272,7 +271,7 @@ class Test5 {
         System.out.println("\nIn ma trận số xoắn ốc tam giác");
         boolean iVal = true;
 
-        int size = Input.input();
+        int size = Input.input("Enter height");
         int
                 bound = size - 2,
                 turn = 0,
@@ -352,7 +351,8 @@ class Test6 {
 
     private static Set<String> englishDictionary;
     private static final Random random = new Random();
-    private static int size;
+    private static int h;
+    private static int w;
     private static String[][] arr = new String[0][0];
     private static String[] letter;
     private final static int[] Row = {-1, -1, -1, 0, 1, 1, 1, 0};
@@ -364,9 +364,10 @@ class Test6 {
 
         englishDictionary = loadDictionary();
 
-        size = Input.input();
+        h = Input.input("Enter height");
+        w= Input.input("Enter length");
 
-        List<String> words = inputWords(size);
+        List<String> words = inputWords(h, w);
 
         StringBuilder strWords = new StringBuilder();
 
@@ -374,12 +375,14 @@ class Test6 {
 
         letter = strWords.toString().split("");
 
-        arr = new String[size][size];
+        arr = new String[h][w];
 
-        int curRow = random.nextInt(size);
-        int curCol = random.nextInt(size);
+        int curRow = random.nextInt(h);
+        int curCol = random.nextInt(w);
 
         arr[curRow][curCol] = letter[0];
+
+        System.out.printf("\ninit arr(%s,%s) = %s\n", curRow, curCol, arr[curRow][curCol]);
 
         if (move(2, curRow, curCol)) {
             System.out.println("\nWords table: ");
@@ -402,12 +405,12 @@ class Test6 {
         return words;
     }
 
-    private static List<String> inputWords(int size) {
+    private static List<String> inputWords(int l, int w) {
         Scanner in = new Scanner(System.in);
 
         List<String> words = new ArrayList<>();
 
-        int cellsLeft = size*size;
+        int cellsLeft = l*w;
 
         System.out.println("\nEnter words list:");
 
@@ -416,11 +419,10 @@ class Test6 {
             try {
                 String word = in.next();
 
-                if (!isEnglishWord(word)) throw new Exception("Invalid English word! Please type a meaningful word:");
                 if (words.contains(word)) throw new Exception("This word has been added! Please type another word:");
                 if (cellsLeft - word.length() < 0) throw new Exception("The word is too long! Please type a shorter word:");
 
-                if (isEnglishWord(word) && !words.contains(word) && cellsLeft - word.length() >= 0) {
+                if (!words.contains(word) && cellsLeft - word.length() >= 0) {
                     words.add(word);
                     cellsLeft -= word.length();
                 }
@@ -440,22 +442,57 @@ class Test6 {
     }
 
     private static boolean move(int countStep, int curRow, int curCol) {
-        if (countStep > size * size) {
+        if (countStep > h * w) {
             return true;
         }
         for (int i = 0; i < 8; i++) {
             int nextRow = curRow + Row[i];
             int nextCol = curCol + Col[i];
-            if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && arr[nextRow][nextCol] == null) {
+            System.out.printf("\nnext(%s,%s)\n", nextRow, nextCol);
+
+            if (nextRow >= 0 && nextRow < h && nextCol >= 0 && nextCol < w
+                    && arr[nextRow][nextCol] == null
+                    && countConnectedCells(arr) == 1) {
+                System.out.println("dir = " + i);
                 arr[nextRow][nextCol] = letter[countStep-1];
+                System.out.printf("arr(%s,%s) = %s\n", nextRow, nextCol, arr[nextRow][nextCol]);
                 if (move(countStep + 1, nextRow, nextCol)) {
                     return true;
                 } else {
                     arr[nextRow][nextCol] = null;
                 }
-            }
+            } else System.out.printf("(%s,%s)\n", nextRow, nextCol);
         }
         return false;
+    }
+
+    private static int countConnectedCells(String[][] array) {
+        int count = 0;
+        Set<Integer> visited = new HashSet<>();
+        for (int i = 0; i < array.length; i++) {
+            for (int j = 0; j < array[0].length; j++) {
+                if (array[i][j] == null && !visited.contains(i * array[0].length + j)) {
+                    count++;
+                    checkConnectedCells(array, i, j, visited);
+                }
+            }
+        }
+        return count;
+    }
+
+    private static void checkConnectedCells(String[][] array, int i, int j, Set<Integer> visited) {
+        visited.add(i * array[0].length + j);
+        for (int di = -1; di <= 1; di++) {
+            for (int dj = -1; dj <= 1; dj++) {
+                if (di != 0 || dj != 0) {
+                    int ni = i + di;
+                    int nj = j + dj;
+                    if (ni >= 0 && ni < array.length && nj >= 0 && nj < array[0].length && array[ni][nj] == null && !visited.contains(ni * array[0].length + nj)) {
+                        checkConnectedCells(array, ni, nj, visited);
+                    }
+                }
+            }
+        }
     }
 
     private static void display() {
