@@ -7,7 +7,7 @@ public class Main{
 
     public static void main(String[] args) {
 
-        int n = 0;
+        int n = 6;
         while (n!=7) {
             try {
                 System.out.println(
@@ -51,7 +51,7 @@ public class Main{
         }
     }
 }
-//
+
 abstract class Input {
     public static int input() {
         Scanner scanner = new Scanner(System.in);
@@ -236,11 +236,7 @@ class Test4 {
                 if (i == bound - 1) {
                     switch (turn) {
                         case 0:
-                            turn++;
-                            break;
                         case 1:
-                            turn++;
-                            break;
                         case 2:
                             turn++;
                             break;
@@ -355,14 +351,20 @@ class Test5 {
 class Test6 {
 
     private static Set<String> englishDictionary;
+    private static final Random random = new Random();
+    private static int size;
+    private static String[][] arr = new String[0][0];
+    private static String[] letter;
+    private final static int[] Row = {-1, -1, -1, 0, 1, 1, 1, 0};
+    private final static int[] Col = {-1, 0, 1, 1, 1, 0, -1, -1};
 
     public static void test() {
 
         System.out.println("\nGame nối chữ");
 
-        int size = Input.input();
+        englishDictionary = loadDictionary();
 
-        englishDictionary = loadDictionary(size);
+        size = Input.input();
 
         List<String> words = inputWords(size);
 
@@ -370,38 +372,28 @@ class Test6 {
 
         words.forEach(strWords::append);
 
-        String[] letter = strWords.toString().split("");
+        letter = strWords.toString().split("");
 
-        String[][] arr = new String[size][size];
+        arr = new String[size][size];
 
-        System.out.println(Arrays.toString(arr[0]));
-        System.out.println(Arrays.toString(arr[1]));
-        System.out.println(Arrays.toString(arr[2]));
-        System.out.println(Arrays.toString(arr).contains("null"));
+        int curRow = random.nextInt(size);
+        int curCol = random.nextInt(size);
 
-        int counter = size*size;
+        arr[curRow][curCol] = letter[0];
 
-        Random random = new Random();
-
-        int row = random.nextInt(size);
-        int col = random.nextInt(size);
-
-        arr[row][col] = letter[0];
-
-        while (counter >= 0){
-
+        if (move(2, curRow, curCol)) {
+            System.out.println("\nWords table: ");
+            display();
         }
-
     }
 
-    private static Set<String> loadDictionary(int maxLength) {
+    private static Set<String> loadDictionary() {
         Set<String> words = new HashSet<>();
 
         try (Scanner scanner = new Scanner(new File("english_words.txt"))) {
             while (scanner.hasNextLine()) {
                 String word = scanner.nextLine().toLowerCase();
-                if (word.length() >= 3 && word.length() <= maxLength)
-                    words.add(word);
+                words.add(word);
             }
         } catch (Exception e) {
             System.out.println("Error loading dictionary: " + e.getMessage());
@@ -417,22 +409,24 @@ class Test6 {
 
         int cellsLeft = size*size;
 
-        System.out.println("Enter words list:");
+        System.out.println("\nEnter words list:");
 
         while (cellsLeft > 0) {
+            System.out.print("Enter a word:");
             try {
                 String word = in.next();
-                word = word.replaceAll(" ","");
+
+                if (!isEnglishWord(word)) throw new Exception("Invalid English word! Please type a meaningful word:");
+                if (words.contains(word)) throw new Exception("This word has been added! Please type another word:");
+                if (cellsLeft - word.length() < 0) throw new Exception("The word is too long! Please type a shorter word:");
 
                 if (isEnglishWord(word) && !words.contains(word) && cellsLeft - word.length() >= 0) {
                     words.add(word);
                     cellsLeft -= word.length();
-                } else {
-                    throw new Exception("\nInvalid word! Enter another word: ");
                 }
 
             } catch (Exception e) {
-                System.out.print(e.getMessage());
+                System.out.println(e.getMessage());
             }
         }
 
@@ -445,15 +439,31 @@ class Test6 {
                 englishDictionary.contains(word.toUpperCase());
     }
 
-    private static int checkPos(int curRow, int curCol, int pos, int[][] arr) {
-        int position = 0;
-
-
-
-        return position;
+    private static boolean move(int countStep, int curRow, int curCol) {
+        if (countStep > size * size) {
+            return true;
+        }
+        for (int i = 0; i < 8; i++) {
+            int nextRow = curRow + Row[i];
+            int nextCol = curCol + Col[i];
+            if (nextRow >= 0 && nextRow < size && nextCol >= 0 && nextCol < size && arr[nextRow][nextCol] == null) {
+                arr[nextRow][nextCol] = letter[countStep-1];
+                if (move(countStep + 1, nextRow, nextCol)) {
+                    return true;
+                } else {
+                    arr[nextRow][nextCol] = null;
+                }
+            }
+        }
+        return false;
     }
 
-    private static void position() {
-
+    private static void display() {
+        for (String[] row : arr) {
+            for (String cell : row) {
+                System.out.print(cell + " ");
+            }
+            System.out.println();
+        }
     }
 }
