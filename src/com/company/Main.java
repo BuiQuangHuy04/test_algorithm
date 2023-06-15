@@ -1,7 +1,12 @@
 package com.company;
 
 import java.io.File;
+import java.sql.Time;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.company.test.autoCreateWords;
 
 public class Main{
 
@@ -9,40 +14,43 @@ public class Main{
         int n = 6;
         while (n!=7) {
             try {
-                System.out.println(
-                        "\n----------------------------------------------------------------" +
-                                "\n1. Square star matrix" +
-                                "\n2. Triangular star matrix" +
-                                "\n3. Matrix of triangular numbers" +
-                                "\n4. Square spiral number matrix" +
-                                "\n5. Triangular helix number matrix" +
-                                "\n6. Words finder game" +
-                                "\n7. Exit");
+                System.out.println("\n----------------------------------------------------------------");
+                Test6.wordFinderGame();
 
-                n = Input.input("Pick a number");
-
-                switch (n) {
-                    case 1:
-                        Test1.test();
-                        break;
-                    case 2:
-                        Test2.test();
-                        break;
-                    case 3:
-                        Test3.test();
-                        break;
-                    case 4:
-                        Test4.test();
-                        break;
-                    case 5:
-                        Test5.test();
-                        break;
-                    case 6:
-                        Test6.test();
-                        break;
-                    default:
-                        break;
-                }
+//                System.out.println(
+//                        "\n----------------------------------------------------------------" +
+//                                "\n1. Square star matrix" +
+//                                "\n2. Triangular star matrix" +
+//                                "\n3. Matrix of triangular numbers" +
+//                                "\n4. Square spiral number matrix" +
+//                                "\n5. Triangular helix number matrix" +
+//                                "\n6. Words finder game" +
+//                                "\n7. Exit");
+//
+//                n = Input.input("Pick a number");
+//
+//                switch (n) {
+//                    case 1:
+//                        Test1.test();
+//                        break;
+//                    case 2:
+//                        Test2.test();
+//                        break;
+//                    case 3:
+//                        Test3.test();
+//                        break;
+//                    case 4:
+//                        Test4.test();
+//                        break;
+//                    case 5:
+//                        Test5.test();
+//                        break;
+//                    case 6:
+//                        Test6.test();
+//                        break;
+//                    default:
+//                        break;
+//                }
             } catch (Exception e) {
                 System.out.println();
                 e.printStackTrace();
@@ -348,46 +356,97 @@ class Test5 {
 }
 
 class Test6 {
-
-    private static Set<String> englishDictionary;
+    private final static int[] Row = {-1, -1, -1, 0, 1, 1, 1, 0};
+    private final static int[] Col = {-1, 0, 1, 1, 1, 0, -1, -1};
     private static final Random random = new Random();
     private static int h;
     private static int w;
+    private static Set<String> englishDictionary;
     private static String[][] arr = new String[0][0];
-    private static String[] letter;
-    private final static int[] Row = {-1, -1, -1, 0, 1, 1, 1, 0};
-    private final static int[] Col = {-1, 0, 1, 1, 1, 0, -1, -1};
+    private static String[] characters;
+    private static final List<int[]> stupidDir = new ArrayList<>();
 
-    public static void test() {
+    public static void wordFinderGame() {
 
         System.out.println("\nGame nối chữ");
 
-        englishDictionary = loadDictionary();
-
         h = Input.input("Enter height");
-        w= Input.input("Enter length");
+        w = Input.input("Enter length");
 
-        List<String> words = inputWords(h, w);
+        List<Word> words = autoCreateWords();
 
-        StringBuilder strWords = new StringBuilder();
+        initStupidDirs();
 
-        words.forEach(strWords::append);
+        words.forEach(System.out::println);
 
-        letter = strWords.toString().split("");
+        Collections.shuffle(words);
+
+        characters = new String[h * w];
+        int n = 0;
+        for (Word word:words) {
+            for (int i = 0; i < word.getValue().length; i++) {
+                characters[n] = word.getValue()[i];
+                ++n;
+            }
+        }
 
         arr = new String[h][w];
 
         int curRow = random.nextInt(h);
         int curCol = random.nextInt(w);
 
-        arr[curRow][curCol] = letter[0];
-
-        System.out.printf("\ninit arr(%s,%s) = %s\n", curRow, curCol, arr[curRow][curCol]);
+        arr[curRow][curCol] = characters[0];
 
         if (move(2, curRow, curCol)) {
             System.out.println("\nWords table: ");
             display();
+        } else System.out.println("err");
+    }
+
+    public static List<Word> autoCreateWords() {
+        Scanner in = new Scanner(System.in);
+        List<Word> words = new ArrayList<>();
+
+        int cellsLeft = h * w;
+
+        int val = 1;
+        while (cellsLeft > 0) {
+            try {
+                System.out.print("\nEnter word length: ");
+                int length = Integer.parseInt(in.nextLine());
+
+                if (cellsLeft - length < 0) {
+                    throw new Exception("Word's length is too long! Enter length shorter or equal to " + cellsLeft);
+                }
+
+                String[] chars = new String[length];
+
+                for (int j = 0; j < length; j++) {
+//                    if (val>9) val = 0;
+                    chars[j] = String.valueOf(val);
+                    val++;
+                }
+
+                cellsLeft -= length;
+                words.add(new Word(length, chars));
+            } catch (Exception e) {
+                System.out.println("\n" + e.getMessage());
+            }
         }
+
+        return words;
+    }
+
+    private static void initStupidDirs() {
+        stupidDir.add(new int[]{0,2,5});
+        stupidDir.add(new int[]{2,4,7});
+        stupidDir.add(new int[]{4,6,1});
+        stupidDir.add(new int[]{0,3,6});
+        stupidDir.add(new int[]{1,3,6});
+        stupidDir.add(new int[]{3,5,0});
+        stupidDir.add(new int[]{5,7,2});
+        stupidDir.add(new int[]{7,1,4});
+        stupidDir.add(new int[]{0,2,4,6});
     }
 
     private static Set<String> loadDictionary() {
@@ -410,7 +469,7 @@ class Test6 {
 
         List<String> words = new ArrayList<>();
 
-        int cellsLeft = l*w;
+        int cellsLeft = l * w;
 
         System.out.println("\nEnter words list:");
 
@@ -419,9 +478,12 @@ class Test6 {
             try {
                 String word = in.next();
 
+//                if (!isEnglishWord(word)) throw new Exception("Invalid word! Please type a meaningful word:");
                 if (words.contains(word)) throw new Exception("This word has been added! Please type another word:");
-                if (cellsLeft - word.length() < 0) throw new Exception("The word is too long! Please type a shorter word:");
+                if (cellsLeft - word.length() < 0) throw new Exception("The word is too long! Please type word has length shorter or equal to " + cellsLeft + ":");
+                if (cellsLeft - word.length() == 1) throw new Exception("Please type another word has more than it 1 unit:");
 
+//                if (isEnglishWord(word) && !words.contains(word) && cellsLeft - word.length() >= 0) {
                 if (!words.contains(word) && cellsLeft - word.length() >= 0) {
                     words.add(word);
                     cellsLeft -= word.length();
@@ -446,49 +508,117 @@ class Test6 {
             return true;
         }
         for (int i = 0; i < 8; i++) {
+            i = random.nextInt(8);
             int nextRow = curRow + Row[i];
             int nextCol = curCol + Col[i];
-            System.out.printf("\nnext(%s,%s)\n", nextRow, nextCol);
 
             if (nextRow >= 0 && nextRow < h && nextCol >= 0 && nextCol < w
                     && arr[nextRow][nextCol] == null
-                    && countConnectedCells(arr) == 1) {
-                System.out.println("dir = " + i);
-                arr[nextRow][nextCol] = letter[countStep-1];
-                System.out.printf("arr(%s,%s) = %s\n", nextRow, nextCol, arr[nextRow][nextCol]);
+                    && countConnectedArrays(arr) == 1
+                    && isThreeWayArray(arr)
+                    && isFourWayArray(arr)) {
+
+                arr[nextRow][nextCol] = characters[countStep-1];
+
                 if (move(countStep + 1, nextRow, nextCol)) {
                     return true;
                 } else {
                     arr[nextRow][nextCol] = null;
                 }
-            } else System.out.printf("(%s,%s)\n", nextRow, nextCol);
+            }
         }
         return false;
     }
 
-    private static int countConnectedCells(String[][] array) {
+    private static boolean isThreeWayArray(String[][] array) {
+        List<int[]> nullPosList = new ArrayList<>();
+
+        for (int row = 1; row < h-1; row++) {
+            for (int col = 1; col < w-1; col++) {
+                if (array[row][col] == null) {
+                    int[] nullPos = new int[3];
+                    int count = 0;
+
+                    for (int dir = 0; dir < 8; dir++) {
+                        if (array[row + Row[dir]][col + Col[dir]] == null) {
+                            if (count >= 3) break;
+                            nullPos[count] = dir;
+                            count++;
+                        }
+                    }
+                    nullPosList.add(nullPos);
+                }
+            }
+        }
+
+        AtomicInteger count = new AtomicInteger();
+
+        stupidDir.forEach(dirs -> nullPosList.forEach(nullPos -> {
+            if (Arrays.equals(dirs, nullPos)) {
+                count.getAndIncrement();
+            }
+        }));
+
+        return count.get() == 0;
+    }
+
+    private static boolean isFourWayArray(String[][] array) {
+        List<int[]> nullPosList = new ArrayList<>();
+
+        for (int row = 1; row < h-1; row++) {
+            for (int col = 1; col < w-1; col++) {
+                if (array[row][col] == null) {
+                    int[] nullPos = new int[4];
+                    int count = 0;
+
+                    for (int dir = 0; dir < 8; dir++) {
+                        if (array[row + Row[dir]][col + Col[dir]] == null) {
+                            if (count >= 4) break;
+                            nullPos[count] = dir;
+                            count++;
+                        }
+                    }
+                    nullPosList.add(nullPos);
+                }
+            }
+        }
+
+        AtomicInteger count = new AtomicInteger();
+
+        stupidDir.forEach(dirs -> nullPosList.forEach(nullPos -> {
+            if (Arrays.equals(dirs, nullPos)) {
+                count.getAndIncrement();
+            }
+        }));
+
+        return count.get() == 0;
+    }
+
+    private static int countConnectedArrays(String[][] array) {
         int count = 0;
         Set<Integer> visited = new HashSet<>();
-        for (int i = 0; i < array.length; i++) {
-            for (int j = 0; j < array[0].length; j++) {
-                if (array[i][j] == null && !visited.contains(i * array[0].length + j)) {
+        for (int row = 0; row < h; row++) {
+            for (int col = 0; col < w; col++) {
+                if (array[row][col] == null && !visited.contains(row * w + col)) {
                     count++;
-                    checkConnectedCells(array, i, j, visited);
+                    checkConnectedCells(array, row, col, visited);
                 }
             }
         }
         return count;
     }
 
-    private static void checkConnectedCells(String[][] array, int i, int j, Set<Integer> visited) {
-        visited.add(i * array[0].length + j);
-        for (int di = -1; di <= 1; di++) {
-            for (int dj = -1; dj <= 1; dj++) {
-                if (di != 0 || dj != 0) {
-                    int ni = i + di;
-                    int nj = j + dj;
-                    if (ni >= 0 && ni < array.length && nj >= 0 && nj < array[0].length && array[ni][nj] == null && !visited.contains(ni * array[0].length + nj)) {
-                        checkConnectedCells(array, ni, nj, visited);
+    private static void checkConnectedCells(String[][] array, int row, int col, Set<Integer> visited) {
+        visited.add(row * w + col);
+        for (int dRow = -1; dRow <= 1; dRow++) {
+            for (int dCol = -1; dCol <= 1; dCol++) {
+                if (dRow != 0 || dCol != 0) {
+                    int nextRow = row + dRow;
+                    int nextCol = col + dCol;
+                    if (nextRow >= 0 && nextRow < h && nextCol >= 0 && nextCol < w
+                            && array[nextRow][nextCol] == null
+                            && !visited.contains(nextRow * w + nextCol)) {
+                        checkConnectedCells(array, nextRow, nextCol, visited);
                     }
                 }
             }
@@ -496,11 +626,26 @@ class Test6 {
     }
 
     private static void display() {
+        System.out.println("------------------------------");
+        int maxLength = String.valueOf(h*w).length();
         for (String[] row : arr) {
+            System.out.print("| ");
             for (String cell : row) {
-                System.out.print(cell + " ");
+                if (cell == null) {
+                    String nullCell = "";
+                    while (nullCell.length() < maxLength) {
+                        nullCell = nullCell.concat(" ");
+                    }
+                    System.out.print(nullCell + " | ");
+                } else {
+                    while (cell.length() < maxLength) {
+                        cell = cell.concat(" ");
+                    }
+                    System.out.print(cell + " | ");
+                }
             }
             System.out.println();
         }
+        System.out.println("------------------------------");
     }
 }
