@@ -375,11 +375,9 @@ class Test6 {
 
         List<Word> words = autoCreateWords();
 
-        initStupidDirs();
+        Collections.shuffle(words);
 
         words.forEach(System.out::println);
-
-        Collections.shuffle(words);
 
         characters = new String[h * w];
         int n = 0;
@@ -435,18 +433,6 @@ class Test6 {
         }
 
         return words;
-    }
-
-    private static void initStupidDirs() {
-        stupidDir.add(new int[]{0,2,5});
-        stupidDir.add(new int[]{2,4,7});
-        stupidDir.add(new int[]{4,6,1});
-        stupidDir.add(new int[]{0,3,6});
-        stupidDir.add(new int[]{1,3,6});
-        stupidDir.add(new int[]{3,5,0});
-        stupidDir.add(new int[]{5,7,2});
-        stupidDir.add(new int[]{7,1,4});
-        stupidDir.add(new int[]{0,2,4,6});
     }
 
     private static Set<String> loadDictionary() {
@@ -515,8 +501,7 @@ class Test6 {
             if (nextRow >= 0 && nextRow < h && nextCol >= 0 && nextCol < w
                     && arr[nextRow][nextCol] == null
                     && countConnectedArrays(arr) == 1
-                    && isThreeWayArray(arr)
-                    && isFourWayArray(arr)) {
+                    && hasDumpWay(arr).size() == 0) {
 
                 arr[nextRow][nextCol] = characters[countStep-1];
 
@@ -530,68 +515,44 @@ class Test6 {
         return false;
     }
 
-    private static boolean isThreeWayArray(String[][] array) {
-        List<int[]> nullPosList = new ArrayList<>();
+    private static List<Boolean> hasDumpWay(String[][] array) {
+        List<List<Integer>> nullDirsList = new ArrayList<>();
+        List<Boolean> hasDumpWay = new ArrayList<>();
 
-        for (int row = 1; row < h-1; row++) {
-            for (int col = 1; col < w-1; col++) {
+        for (int row = 1; row < 4; row++) {
+            for (int col = 1; col < 4; col++) {
                 if (array[row][col] == null) {
-                    int[] nullPos = new int[3];
-                    int count = 0;
+
+                    List<Integer> nullDis = new ArrayList<>();
 
                     for (int dir = 0; dir < 8; dir++) {
                         if (array[row + Row[dir]][col + Col[dir]] == null) {
-                            if (count >= 3) break;
-                            nullPos[count] = dir;
-                            count++;
+                            nullDis.add(dir);
                         }
                     }
-                    nullPosList.add(nullPos);
+                    nullDirsList.add(nullDis);
                 }
             }
         }
 
-        AtomicInteger count = new AtomicInteger();
-
-        stupidDir.forEach(dirs -> nullPosList.forEach(nullPos -> {
-            if (Arrays.equals(dirs, nullPos)) {
-                count.getAndIncrement();
-            }
-        }));
-
-        return count.get() == 0;
-    }
-
-    private static boolean isFourWayArray(String[][] array) {
-        List<int[]> nullPosList = new ArrayList<>();
-
-        for (int row = 1; row < h-1; row++) {
-            for (int col = 1; col < w-1; col++) {
-                if (array[row][col] == null) {
-                    int[] nullPos = new int[4];
-                    int count = 0;
-
-                    for (int dir = 0; dir < 8; dir++) {
-                        if (array[row + Row[dir]][col + Col[dir]] == null) {
-                            if (count >= 4) break;
-                            nullPos[count] = dir;
-                            count++;
-                        }
-                    }
-                    nullPosList.add(nullPos);
-                }
-            }
+        for (int i = 0; i < nullDirsList.size(); i++) {
+            hasDumpWay.add(true);
         }
 
-        AtomicInteger count = new AtomicInteger();
+        for (int i = 0; i < nullDirsList.size(); i++) {
+            if (nullDirsList.get(i).size() >= 3) {
+                for (int j = 1; j < nullDirsList.get(i).size(); j++) {
+                    if (nullDirsList.get(i).get(j) - nullDirsList.get(i).get(j - 1) != 2 &&
+                            nullDirsList.get(i).get(j) - nullDirsList.get(i).get(j - 1) != 3) {
+                        hasDumpWay.remove(0);
+                        System.out.println("size dump way: " + hasDumpWay.size());
+                        break;
+                    }
+                }
+            } else hasDumpWay.remove(0);
+        }
 
-        stupidDir.forEach(dirs -> nullPosList.forEach(nullPos -> {
-            if (Arrays.equals(dirs, nullPos)) {
-                count.getAndIncrement();
-            }
-        }));
-
-        return count.get() == 0;
+        return hasDumpWay;
     }
 
     private static int countConnectedArrays(String[][] array) {
