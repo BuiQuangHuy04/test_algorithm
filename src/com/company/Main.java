@@ -519,14 +519,17 @@ class Test6 {
         List<List<Integer>> nullDirsList = new ArrayList<>();
         List<Boolean> hasDumpWay = new ArrayList<>();
 
-        for (int row = 1; row < 4; row++) {
-            for (int col = 1; col < 4; col++) {
+        for (int row = 1; row < h; row++) {
+            for (int col = 1; col < w; col++) {
                 if (array[row][col] == null) {
 
                     List<Integer> nullDis = new ArrayList<>();
 
                     for (int dir = 0; dir < 8; dir++) {
-                        if (array[row + Row[dir]][col + Col[dir]] == null) {
+                        int nextRow = row + Row[dir];
+                        int nextCol = col + Col[dir];
+                        if (nextRow >= 0 && nextRow < h && nextCol >= 0 && nextCol < w
+                                && array[nextRow][nextCol] == null) {
                             nullDis.add(dir);
                         }
                     }
